@@ -1,0 +1,17 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {analyze,redact,markdown,MAX_BYTES} from '../src/engine.js';
+import {rules} from '../src/rules.js';
+const scan=(text,options)=>analyze([{name:'build.log',text}],options);
+test('deduplicates timestamps and preserves exact source lines',()=>{const r=scan('2026-01-01T10:00:00Z Error: connect ECONNREFUSED host:5432\n2026-01-01T10:01:00Z Error: connect ECONNREFUSED host:5432');assert.equal(r.findings.length,1);assert.equal(r.findings[0].count,2);assert.deepEqual(r.findings[0].locations.map(l=>l.line),[1,2]);assert.equal(r.findings[0].rule,'network-failure');});
+test('baseline classifies new, existing and resolved signatures',()=>{const before=scan('Error: connect ECONNREFUSED host\nENOSPC');const after=scan('Error: connect ECONNREFUSED host\nModuleNotFoundError: absent',{baseline:before});assert.equal(after.summary.new,1);assert.equal(after.summary.resolved,1);assert.equal(after.findings[0].status,'existing');});
+test('does not merge different modules',()=>{assert.equal(scan("Cannot find module 'a'\nCannot find module 'b'").summary.groups,2);});
+test('redacts common secrets from evidence, context, filenames and signatures',()=>{const token='ghp_'+'a'.repeat(36);const r=analyze([{name:token,text:`TOKEN=secret\nError: ${token} https://user:pass@example.com?token=private\nAuthorization: Bearer sensitive.value`}]);const result=JSON.stringify(r);for(const secret of [token,'secret','user:pass','private','sensitive.value'])assert.ok(!result.includes(secret));});
+test('retains only ten occurrence locations with full count',()=>{const r=scan(Array(30).fill('ENOSPC').join('\n'));assert.equal(r.findings[0].count,30);assert.equal(r.findings[0].locations.length,10);});
+test('supports Portuguese report and hints',()=>{const r=scan('ENOSPC',{lang:'pt-BR'});assert.equal(r.findings[0].title,'Armazenamento do runner esgotado');assert.match(markdown(r),/relatório de falhas/);});
+test('rejects malformed and oversized input',()=>{assert.throws(()=>analyze([{name:'a',text:'x'.repeat(MAX_BYTES+1)}]),RangeError);assert.throws(()=>analyze([{name:'a'}]),TypeError);assert.throws(()=>analyze(Array.from({length:101},()=>({name:'a',text:''}))),RangeError);assert.throws(()=>scan('ENOSPC',{baseline:{schemaVersion:1,findings:[{}]}}),TypeError);});
+test('empty or normal logs are not failures',()=>{assert.equal(scan('All tests passed\n0 errors').summary.groups,0);assert.equal(analyze([]).summary.groups,0);});
+test('strips ANSI control sequences',()=>{assert.equal(redact('\u001b[31mError:\u001b[0m bad'),'Error: bad');});
+test('Markdown escapes untrusted HTML and links',()=>{const md=markdown(scan('Error: <img src=x onerror=alert(1)> [click](https://x)'));assert.ok(!md.includes('<img'));assert.ok(!md.includes('[click]('));});
+const samples={'dependency-conflict':'npm ERR! ERESOLVE unable to resolve dependency tree','lockfile-drift':'ERR_PNPM_OUTDATED_LOCKFILE','missing-module':"Cannot find module 'foo'",'type-error':'src/a.ts(1,2): error TS2322: broken','test-failure':'AssertionError: expected true','permission-denied':'EACCES: access denied','network-failure':'ENOTFOUND registry.example','disk-full':'No space left on device','memory-limit':'JavaScript heap out of memory','command-missing':'tool: command not found','timeout':'TimeoutError: wait failed','generic-error':'fatal: unknown problem'};
+for(const rule of rules)test(`recognizes ${rule.id}`,()=>assert.equal(scan(samples[rule.id]).findings[0].rule,rule.id));

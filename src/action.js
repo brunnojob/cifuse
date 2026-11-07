@@ -1,0 +1,13 @@
+import {readFile,appendFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+const path=process.env.CIFUSE_LOG;
+if(!path)throw Error('log input is required');
+const args=[fileURLToPath(new URL('../bin/cifuse.js',import.meta.url)),path,'--format','markdown','--lang',process.env.CIFUSE_LANG||'en'];
+if(process.env.CIFUSE_BASELINE)args.push('--baseline',process.env.CIFUSE_BASELINE);
+if(process.env.CIFUSE_FAIL_ON)args.push('--fail-on',process.env.CIFUSE_FAIL_ON);
+const result=spawnSync(process.execPath,args,{encoding:'utf8',maxBuffer:32*1024*1024});
+if(result.error)throw result.error;
+if(result.stdout&&process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,result.stdout);
+if(result.stderr)process.stderr.write(result.stderr);
+process.exitCode=result.status??2;

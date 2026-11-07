@@ -1,0 +1,10 @@
+name: Bug report
+description: Report a reproducible analysis or interface problem
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction and sanitized input
+      description: Include version, command or browser, expected and actual behavior. Never include real secrets.
+    validations:
+      required: true

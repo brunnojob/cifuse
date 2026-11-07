@@ -1,0 +1,12 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {mkdtemp,writeFile,rm,readFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+const cli=(...args)=>spawnSync(process.execPath,['bin/cifuse.js',...args],{encoding:'utf8'});
+test('demo produces parseable JSON',()=>{const r=cli('--demo','--format','json');assert.equal(r.status,0);assert.equal(JSON.parse(r.stdout).summary.signals,8);});
+test('threshold and invalid arguments use distinct exit codes',()=>{assert.equal(cli('--demo','--fail-on','findings').status,1);for(const args of [['--nope'],['--demo','--format','xml'],['--demo','--lang','xx'],['--demo','--fail-on','new'],['absent.log']])assert.equal(cli(...args).status,2);});
+test('stdin redacts and Portuguese works',()=>{const r=spawnSync(process.execPath,['bin/cifuse.js','-','--lang','pt-BR'],{input:'Error: TOKEN=veryprivate',encoding:'utf8'});assert.equal(r.status,0);assert.ok(!r.stdout.includes('veryprivate'));assert.match(r.stdout,/relatório/);});
+test('baseline CLI compares reports',async()=>{const dir=await mkdtemp(join(tmpdir(),'cifuse-'));try{const path=join(dir,'baseline.json');await writeFile(path,cli('--demo','--format','json').stdout);assert.equal(cli('--demo','--baseline',path,'--fail-on','new').status,0);}finally{await rm(dir,{recursive:true,force:true});}});
+test('Action wrapper handles shell metacharacters as a literal filename',async()=>{const dir=await mkdtemp(join(tmpdir(),'cifuse-'));try{const path=join(dir,'log ; echo injected.txt'),summary=join(dir,'summary');await writeFile(path,'ENOSPC');const r=spawnSync(process.execPath,['src/action.js'],{env:{...process.env,CIFUSE_LOG:path,GITHUB_STEP_SUMMARY:summary},encoding:'utf8'});assert.equal(r.status,0);assert.match(await readFile(summary,'utf8'),/storage exhausted/);}finally{await rm(dir,{recursive:true,force:true});}});

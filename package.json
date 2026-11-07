@@ -1,0 +1,14 @@
+{
+  "name": "@brunnojob/cifuse",
+  "version": "0.1.0",
+  "description": "Turn CI logs into deduplicated, evidence-linked failure reports. Offline CLI, GitHub Action and browser workbench.",
+  "type": "module",
+  "bin": {"cifuse": "bin/cifuse.js"},
+  "exports": "./src/engine.js",
+  "scripts": {"test": "node --test", "build": "node scripts/build.js", "demo": "node bin/cifuse.js --demo"},
+  "engines": {"node": ">=22"},
+  "license": "MIT",
+  "repository": {"type": "git", "url": "https://github.com/brunnojob/cifuse.git"},
+  "files": ["src", "bin", "examples"],
+  "keywords": ["ci", "github-actions", "logs", "developer-tools", "automation", "offline"]
+}

@@ -1,0 +1,13 @@
+2026-11-07T10:00:00.000Z Starting build (illustrative fixture)
+Installing workspace dependencies
+Packages installed
+Running typecheck
+src/api.ts(12,7): error TS2322: Type 'string' is not assignable to type 'number'.
+src/api.ts(12,7): error TS2322: Type 'string' is not assignable to type 'number'.
+Running integration tests
+Error: connect ECONNREFUSED 127.0.0.1:5432
+Error: connect ECONNREFUSED 127.0.0.1:5432
+Error: connect ECONNREFUSED 127.0.0.1:5432
+FAIL tests/auth.test.ts
+AssertionError: expected 200, received 503
+Process completed with exit code 1

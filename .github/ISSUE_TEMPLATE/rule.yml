@@ -1,0 +1,10 @@
+name: Rule suggestion
+description: Suggest a diagnostic pattern using sanitized examples
+body:
+  - type: textarea
+    id: example
+    attributes:
+      label: Positive and negative examples
+      description: Include a short sanitized failure and a similar harmless line that should not match.
+    validations:
+      required: true

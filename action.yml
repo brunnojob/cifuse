@@ -1,0 +1,33 @@
+name: CIFuse CI log triage
+description: Group CI failures and append evidence with investigation steps to the job summary.
+author: brunnojob
+branding:
+  icon: zap
+  color: green
+inputs:
+  log:
+    description: Path to an existing local text log file
+    required: true
+  lang:
+    description: Report language (en or pt-BR)
+    default: en
+  baseline:
+    description: Optional previous CIFuse JSON report path
+    required: false
+  fail-on:
+    description: Optional findings or new threshold (new requires baseline)
+    required: false
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - name: Analyze log
+      shell: bash
+      env:
+        CIFUSE_LOG: ${{ inputs.log }}
+        CIFUSE_LANG: ${{ inputs.lang }}
+        CIFUSE_BASELINE: ${{ inputs.baseline }}
+        CIFUSE_FAIL_ON: ${{ inputs.fail-on }}
+      run: node "$GITHUB_ACTION_PATH/src/action.js"

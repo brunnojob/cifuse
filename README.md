@@ -11,6 +11,10 @@
 
 A failed build often means scrolling through the same errors, copying evidence into an issue, and checking whether the failure happened before. CIFuse automates that triage in your terminal, browser or GitHub job summary.
 
+## Quick start
+
+Run the bundled example with Node.js 22+ and Git:
+
 ```sh
 npx --yes github:brunnojob/cifuse --demo
 ```

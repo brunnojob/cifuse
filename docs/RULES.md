@@ -13,6 +13,6 @@
 | memory-limit | JavaScript heap out of memory |
 | command-missing | command not found |
 | timeout | TimeoutError |
-| generic-error | error:, fatal:, nonzero GitHub exit wrapper |
+| maven-compilation | BUILD FAILURE, [ERROR] compilation failure |
 
 Rules are evaluated in this order. Add a sanitized positive fixture, a negative example and both language messages when contributing a rule. Keep general wrapper failures visible: a final nonzero exit message may be useful even when a more specific diagnostic also appears.

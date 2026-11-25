@@ -60,6 +60,26 @@
       ],
       "exitCode": 0,
       "text": "0 errors; 12 tests passed\n"
+    },
+    {
+      "name": "maven-compilation-error",
+      "expected": "maven-compilation",
+      "command": [
+        "mvn",
+        "compile"
+      ],
+      "exitCode": 1,
+      "text": "[ERROR] [ERROR] BUILD FAILURE\n[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project test\n[ERROR] Failed to compile sources. Compilation failure:\n[ERROR] '/workspace/test/src/main/java/Example.java:[3,5]' error: cannot find symbol\n[ERROR]   symbol:   class MissingClass\n[ERROR]     location: class com.example.Example\n[ERROR] 1 error\n[ERROR] \\[ERROR] \\[ERROR] Credits go to everyone who contributed.\n[INFO] Total time:  2.134 s\n[INFO] Finished at: 2026-11-25T10:30:00Z\n"
+    },
+    {
+      "name": "maven-compilation-info",
+      "expected": null,
+      "command": [
+        "mvn",
+        "compile"
+      ],
+      "exitCode": 0,
+      "text": "[INFO] Apache Maven 3.9.9\n[INFO] Building project artifact\n[INFO] \\[INFO\\] \\[INFO\\] --- maven-compiler-plugin:3.11.0:compile (default-compile) ---\n[INFO] Compiling 2 source files to target/classes\n[INFO] Classes compiled successfully.\n[INFO] BUILD SUCCESS\n[INFO] Total time:  1.456 s\n[INFO] Finished at: 2026-11-25T10:31:00Z\n"
     }
   ]
 }

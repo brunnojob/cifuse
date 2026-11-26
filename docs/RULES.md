@@ -16,3 +16,7 @@
 | maven-compilation | BUILD FAILURE, [ERROR] compilation failure |
 
 Rules are evaluated in this order. Add a sanitized positive fixture, a negative example and both language messages when contributing a rule. Keep general wrapper failures visible: a final nonzero exit message may be useful even when a more specific diagnostic also appears.
+
+## missing-module coverage
+
+Python variants covered: `ModuleNotFoundError: No module named '…'` at the start of a line or after sentence punctuation, and `ImportError: No module named …`. Variants that are intentionally **not** matched: `ImportError: cannot import name 'X' from 'Y'` (a broken attribute, not a missing module), quoted mentions of these phrases in ordinary explanatory prose, and tracebacks where the exception line is not at a line boundary. These unsupported variants stay unclaimed rather than guessed.

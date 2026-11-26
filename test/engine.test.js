@@ -18,3 +18,14 @@ for(const rule of rules)test(`recognizes ${rule.id}`,()=>assert.equal(scan(sampl
   test('recognizes Maven compilation failures',()=>assert.equal(scan('[ERROR] BUILD FAILURE').findings[0].rule,'maven-compilation'));
   test('does not treat all [ERROR] as Maven',()=>assert.equal(analyze([{name:'build.log',text:'[DEBUG] Starting Maven...'}]).summary.groups,0));
   test('Maven info levels are not failures',()=>assert.equal(scan('[INFO] Compiling 2 source files to target/classes\nBUILD SUCCESS').summary.groups,0));
+const pythonTraceback=`Traceback (most recent call last):
+  File "app/main.py", line 3, in <module>
+    import requests
+ModuleNotFoundError: No module named 'requests'`;
+test('recognizes a Python ModuleNotFoundError traceback with source line, grouping and context',()=>{const r=scan(pythonTraceback);assert.equal(r.findings.length,1);const f=r.findings[0];assert.equal(f.rule,'missing-module');assert.equal(f.count,1);assert.equal(f.locations[0].line,4);assert.deepEqual(f.locations[0].context,['    import requests',"ModuleNotFoundError: No module named 'requests'"]);});
+test('groups repeated Python import failures without merging distinct modules',()=>{const r=scan(`${"ModuleNotFoundError: No module named 'requests'"}\n${"ModuleNotFoundError: No module named 'pandas'"}`);assert.equal(r.summary.groups,2);});
+test('ImportError without a module name is not claimed as a missing module',()=>{assert.equal(scan("ImportError: cannot import name 'helper' from 'app.utils'").summary.groups,0);});
+test('prose quoting the Python phrases is not a failure',()=>{const r=scan(`The docs explain that a "No module named" message means the dependency
+was not installed, and that ModuleNotFoundError is raised by Python.
+FAQ: What does "No module named requests" mean? It means ModuleNotFoundError.`);assert.equal(r.summary.groups,0);});
+test('successful Python run produces no findings',()=>{assert.equal(scan('python -m pytest\nAll dependencies imported\nOK').summary.groups,0);});
